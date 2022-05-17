@@ -1,19 +1,15 @@
-package com.column.controller
+package com.column.grpc
 
 import com.column.service.ArticleService
-import org.springframework.web.bind.annotation.*
-import com.column.proto.ArticleServiceGrpc
 import com.column.proto.ArticleServiceGrpcKt
 import com.column.proto.ArticleProvider
-import com.column.proto.ArticleProvider.GetArticlesResponse
 import org.lognet.springboot.grpc.GRpcService
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RestController
-import io.grpc.stub.StreamObserver
 import com.google.protobuf.Empty
+import java.time.LocalDateTime
+import java.time.ZoneId
 
 @GRpcService
-class ArticleController(private val articleService: ArticleService): ArticleServiceGrpcKt.ArticleServiceCoroutineImplBase(){
+class ArticleGrpcService(private val articleService: ArticleService): ArticleServiceGrpcKt.ArticleServiceCoroutineImplBase(){
     override suspend fun getArticles(request: Empty): ArticleProvider.GetArticlesResponse  {
         val article: List<com.column.entity.Article> = articleService.findAll()
         val grpcArticles: List<ArticleProvider.Article> =
@@ -33,8 +29,15 @@ class ArticleController(private val articleService: ArticleService): ArticleServ
             .setId(article.id)
             .setTitle(article.title)
             .setDetail(article.detail)
-//            .setCreated(article.created)
-//            .setUpdated(article.updated)
+            .setCreated(toGrpcTimestamp(article.created))
+            .setUpdated(toGrpcTimestamp(article.updated))
         return articleBuilder.build()
+    }
+
+    fun toGrpcTimestamp(date: LocalDateTime) : com.google.protobuf.Timestamp {
+        val dateInstant = date.atZone(ZoneId.systemDefault()).toInstant()
+        return com.google.protobuf.Timestamp.newBuilder()
+            .setSeconds(dateInstant.epochSecond)
+            .setNanos(dateInstant.nano).build()
     }
 }

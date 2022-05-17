@@ -1,6 +1,6 @@
 package com.column.entity
 
-import java.time.LocalDate
+import java.time.LocalDateTime
 import javax.persistence.*
 
 @Entity
@@ -17,8 +17,8 @@ data class Article (
     val detail: String,
 
     @Column(name = "created", nullable = true)
-    val created: LocalDate,
+    val created: LocalDateTime,
 
     @Column(name = "updated")
-    val updated: LocalDate,
+    val updated: LocalDateTime,
 )
